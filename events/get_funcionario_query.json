@@ -1,0 +1,14 @@
+{
+    "httpMethod": "GET",
+    "resource": "/funcionarios/search",
+    "path": "/funcionarios/search",
+    "queryStringParameters": {
+      "nome": "João da Silva"
+    },
+    "headers": {},
+    "body": null,
+    "isBase64Encoded": false,
+    "requestContext": {},
+    "stageVariables": {}
+  }
+  

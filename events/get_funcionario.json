@@ -1,0 +1,12 @@
+{
+    "httpMethod": "GET",
+    "resource": "/funcionarios",
+    "path": "/funcionarios",
+    "queryStringParameters": {},
+    "headers": {},
+    "body": null,
+    "isBase64Encoded": false,
+    "requestContext": {},
+    "stageVariables": {}
+  }
+  

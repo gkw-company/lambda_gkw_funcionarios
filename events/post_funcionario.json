@@ -1,0 +1,11 @@
+{
+    "httpMethod": "POST",
+    "path": "/funcionarios",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "queryStringParameters": null,
+    "body": "{\"nome\": \"João da Silva\", \"email\": \"joao.silva@example.com\", \"celular\": \"11999998888\", \"cpf\": \"123.456.789-00\", \"ativo\": true, \"estabelecimento_id\": \"adf55d61-1d30-11f0-b112-0242ac170002\"}",
+    "isBase64Encoded": false
+  }
+  

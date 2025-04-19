@@ -1,0 +1,17 @@
+{
+    "httpMethod": "PATCH",
+    "resource": "/funcionarios/{funcionario_id}",
+    "path": "/funcionarios/3eaaa409d4c040dfb10fb5852ad5243e",
+    "pathParameters": {
+      "funcionario_id": "3eaaa409d4c040dfb10fb5852ad5243e"
+    },
+    "queryStringParameters": null,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"nome\": \"Ana Maria\",\"email\": \"ana.maria@example.com\",\"ativo\": false}",
+    "isBase64Encoded": false,
+    "requestContext": {},
+    "stageVariables": {}
+  }
+  

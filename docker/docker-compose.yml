@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: agendamento-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: sistema_agendamento
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+
+  lambda:
+    build:
+      context: .           # diretório onde está seu Dockerfile
+      dockerfile: Dockerfile  # ajuste se tiver outro nome
+    container_name: lambda-python
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root123
+      DB_NAME: sistema_agendamento
+    volumes:
+      - .:/app  # opcional: monta o projeto no container
+    working_dir: /app
+    command: ["python3", "-m", "awslambdaric", "app.src.lambda_function.lambda_handler"]
+
+volumes:
+  mysql_data:
