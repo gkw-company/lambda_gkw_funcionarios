@@ -1,96 +1,44 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  lambda_api_funcionarios
+  lambda_gkw_funcionarios
 
   Powertools for AWS Lambda (Python) example
 
-Globals:
+Globals: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html
   Function:
     Timeout: 5
     MemorySize: 128
     Runtime: python3.12
+
     Tracing: Active
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
   Api:
     TracingEnabled: true
-
 Resources:
-  ## Role customizada para a Lambda, com política de deploy de código
-  LambdaExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: LambdaExecutionRole
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        # Permissões básicas para logs no CloudWatch
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: LambdaFunctionCodeDeploymentPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Sid: AllowCreateAndUpdateFunctionCode
-                Effect: Allow
-                Action:
-                  - lambda:CreateFunction
-                  - lambda:UpdateFunctionCode
-                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lambda_gkw_funcionarios
-
-  ## A função Lambda que usa essa Role
   LambdaFuncionarios:
-    Type: AWS::Serverless::Function
+    Type: AWS::Serverless::Function     # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
     Properties:
-      FunctionName: lambda_gkw_funcionarios
-      Description: CRUD de Funcionários com Powertools
-      CodeUri: ./app/
       Handler: lambda_function.lambda_handler
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Description: Hello World function
+      CodeUri: ./app/
       Architectures:
-        - x86_64
+      - x86_64
       Tracing: Active
-
-      # Endpoints HTTP mapeados
       Events:
-        ListarFuncionarios:
-          Type: Api
+        FuncionarioPath:
+          Type: Api           # More info about API Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-api.html
           Properties:
-            Path: /funcionarios
+            Path: /funcionario
             Method: GET
-
-        CriarFuncionario:
-          Type: Api
-          Properties:
-            Path: /funcionarios
-            Method: POST
-
-        AtualizarFuncionario:
-          Type: Api
-          Properties:
-            Path: /funcionarios/{funcionario_id}
-            Method: PATCH
-
+             # Powertools for AWS Lambda (Python) env vars: https://awslabs.github.io/aws-lambda-powertools-python/#environment-variables
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: lambda_gkw_funcionarios
           POWERTOOLS_METRICS_NAMESPACE: Powertools
           LOG_LEVEL: INFO
-
       Tags:
         LambdaPowertools: python
 
-Outputs:
-  LambdaFunctionArn:
-    Description: "ARN da função Lambda"
-    Value: !GetAtt LambdaFuncionarios.Arn
-
-  LambdaExecutionRoleArn:
-    Description: "ARN da Role de execução"
-    Value: !GetAtt LambdaExecutionRole.Arn
