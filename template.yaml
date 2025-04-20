@@ -17,12 +17,38 @@ Globals:
     TracingEnabled: true
 
 Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaFunctionCodeDeploymentPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: AllowCreateAndUpdateFunctionCode
+                Effect: Allow
+                Action:
+                  - lambda:CreateFunction
+                  - lambda:UpdateFunctionCode
+                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lambda_gkw_funcionarios
   LambdaFuncionarios:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: lambda_gkw_funcionarios
       Handler: lambda_function.lambda_handler
       Description: CRUD de Funcionários com Powertools
       CodeUri: ./app/
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Tracing: Active
@@ -49,7 +75,7 @@ Resources:
 
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: lambda_api_funcionarios
+          POWERTOOLS_SERVICE_NAME: lambda_gkw_funcionarios
           POWERTOOLS_METRICS_NAMESPACE: Powertools
           LOG_LEVEL: INFO
 
