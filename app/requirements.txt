@@ -1,0 +1,7 @@
+aws-lambda-powertools
+boto3
+aws-xray-sdk
+peewee
+python-dotenv
+pydantic
+pymysql

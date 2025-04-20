@@ -5,40 +5,53 @@ Description: >
 
   Powertools for AWS Lambda (Python) example
 
-Globals: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html
+Globals:
   Function:
     Timeout: 5
     MemorySize: 128
     Runtime: python3.12
-
     Tracing: Active
-    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
   Api:
     TracingEnabled: true
+
 Resources:
   LambdaFuncionarios:
-    Type: AWS::Serverless::Function     # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Type: AWS::Serverless::Function
     Properties:
       Handler: lambda_function.lambda_handler
-      Description: Hello World function
+      Description: CRUD de Funcionários com Powertools
       CodeUri: ./app/
       Architectures:
-      - x86_64
+        - x86_64
       Tracing: Active
+
+      # Define três endpoints REST para a mesma função
       Events:
-        FuncionarioPath:
-          Type: Api           # More info about API Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-api.html
+        ListarFuncionarios:
+          Type: Api
           Properties:
-            Path: /funcionario
+            Path: /funcionarios
             Method: GET
-             # Powertools for AWS Lambda (Python) env vars: https://awslabs.github.io/aws-lambda-powertools-python/#environment-variables
+
+        CriarFuncionario:
+          Type: Api
+          Properties:
+            Path: /funcionarios
+            Method: POST
+
+        AtualizarFuncionario:
+          Type: Api
+          Properties:
+            Path: /funcionarios/{funcionario_id}
+            Method: PATCH
+
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: PowertoolsHelloWorld
+          POWERTOOLS_SERVICE_NAME: lambda_api_funcionarios
           POWERTOOLS_METRICS_NAMESPACE: Powertools
           LOG_LEVEL: INFO
+
       Tags:
         LambdaPowertools: python
-

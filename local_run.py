@@ -4,10 +4,10 @@ from types import SimpleNamespace
 from app.lambda_function import lambda_handler
 
 
-#EVENT_FILE = "events/get_funcionario.json"
+EVENT_FILE = "events/get_funcionario.json"
 # EVENT_FILE = "events/post_funcionario.json"
 #EVENT_FILE = "events/get_funcionario_query.json"
-EVENT_FILE = "events/patch_funcionario.json"
+#EVENT_FILE = "events/patch_funcionario.json"
 
 # Simula o contexto Lambda (você pode expandir se necessário)
 class MockContext(SimpleNamespace):

@@ -1,0 +1,131 @@
+name: Deploy Lambda Function to AWS
+
+on:
+  push:
+    branches:
+      - 'feature/*'  # Para qualquer branch que comece com "feature/"
+      - 'develop'    # Quando push na branch develop
+      - 'main'       # Quando push na branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: AKIAQYEI45S7LTS32DEW
+        aws-secret-access-key: 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
+        aws-region: sa-east-1
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r app/requirements.txt
+
+    - name: Package Lambda function
+      run: |
+        cd lambda_function  # Vá até a pasta raiz da função
+        zip -r ../lambda_function.zip lambda_function.py src/app/*  # Garante que o ZIP inclua a função e dependências
+        cd ..  # Volta para o diretório raiz
+        ls -lah  # Lista os arquivos para verificar se o ZIP foi criado corretamente
+
+    # Passo 1: Verificar se a Role IAM já existe
+    - name: Check if IAM Role exists
+      id: check_iam_role
+      run: |
+        ROLE_NAME="LambdaExecutionRole"
+        ROLE_ARN=$(aws iam get-role --role-name $ROLE_NAME --query 'Role.Arn' --output text 2>/dev/null || echo "NOT_FOUND")
+
+        if [ "$ROLE_ARN" == "NOT_FOUND" ]; then
+          echo "Role não encontrada, criando..."
+          echo "ROLE_EXISTS=false" >> $GITHUB_ENV
+        else
+          echo "Role já existe: $ROLE_ARN"
+          echo "ROLE_EXISTS=true" >> $GITHUB_ENV
+          echo "ROLE_ARN=$ROLE_ARN" >> $GITHUB_ENV
+        fi
+
+    # Passo 2: Criar a Role IAM caso não exista
+    - name: Create IAM Role
+      if: env.ROLE_EXISTS == 'false'
+      run: |
+        ROLE_NAME="LambdaExecutionRole"
+
+        # Criar a role
+        ROLE_ARN=$(aws iam create-role --role-name $ROLE_NAME \
+          --assume-role-policy-document '{
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": { "Service": "lambda.amazonaws.com" },
+                "Action": "sts:AssumeRole"
+              }
+            ]
+          }' --query 'Role.Arn' --output text)
+
+        echo "Role criada: $ROLE_ARN"
+
+        # Anexar permissões da Lambda
+        aws iam attach-role-policy --role-name $ROLE_NAME \
+          --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+        # Esperar a role propagar antes de usá-la
+        echo "Aguardando 10 segundos para propagação da Role IAM..."
+        sleep 10
+
+        echo "ROLE_ARN=$ROLE_ARN" >> $GITHUB_ENV
+
+    # Passo 3: Verificar se a Lambda já existe
+    - name: Check if Lambda exists
+      id: check_lambda
+      run: |
+        if aws lambda get-function --function-name lambda-gkw_funcionarios > /dev/null 2>&1; then
+          echo "Lambda já existe"
+          echo "EXISTS=true" >> $GITHUB_ENV
+        else
+          echo "Lambda não encontrada, criando..."
+          echo "EXISTS=false" >> $GITHUB_ENV
+        fi
+
+    # Passo 4: Condicional para deploy baseado na branch
+    - name: Deploy to AWS (Feature, Develop, or Main)
+      run: |
+        if [[ $GITHUB_REF == 'refs/heads/feature/'* ]]; then
+          echo "Deploying to TEST environment"
+          aws lambda update-function-code --function-name lambda-gkw_funcionarios --zip-file fileb://lambda_function.zip
+        elif [[ $GITHUB_REF == 'refs/heads/develop' ]]; then
+          echo "Deploying to STAGING environment"
+          aws lambda update-function-code --function-name lambda-gkw_funcionarios --zip-file fileb://lambda_function.zip
+        elif [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+          echo "Deploying to PRODUCTION environment"
+          aws lambda update-function-code --function-name lambda-gkw_funcionarios --zip-file fileb://lambda_function.zip
+        fi
+
+    # Passo 5: Criar a Lambda se não existir
+    - name: Create Lambda if not exists
+      if: env.EXISTS == 'false'
+      run: |
+        aws lambda create-function \
+          --function-name lambda-gkw_funcionarios \
+          --runtime python3.9 \
+          --role ${{ env.ROLE_ARN }} \
+          --handler lambda_function.lambda_handler \
+          --zip-file fileb://lambda_function.zip \
+          --region sa-east-1
+
+    # Passo 6: Atualizar a Lambda se ela já existir
+    - name: Update Lambda function
+      if: env.EXISTS == 'true'
+      run: |
+        aws lambda update-function-code --function-name lambda-gkw_funcionarios --zip-file fileb://lambda_function.zip
+

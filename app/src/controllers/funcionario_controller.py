@@ -45,10 +45,6 @@ def postFuncionarios(input_model: FuncionarioDTO):
 @router.patch("/funcionarios/<funcionario_id>")
 def atualizar_funcionario(funcionario_id: str, input_model: FuncionarioUpdateDTO):
     try:
-    #     dados_update = FuncionarioUpdateDTO(**input_model)
-    # except ValidationError as exc:
-    #     # retorna 400 com detalhes de validação
-    #     raise BadRequestError(exc.json())
 
         resultado = service.atualizar_funcionario(funcionario_id, input_model)
         return {
@@ -101,7 +97,7 @@ def consultar_funcionarios_query():
         }
 
     except Exception as e:
-        logger.error(f"Erro ao postFuncionarios funcionário: {str(e)}")
+        logger.error(f"Erro ao consultar funcionários: {str(e)}")
         return {
             "statusCode": 500,
             "body": {
