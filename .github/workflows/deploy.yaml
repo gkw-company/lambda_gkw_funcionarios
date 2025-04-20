@@ -33,7 +33,7 @@ jobs:
 
     - name: Package Lambda function
       run: |
-        cd lambda_function  # Vá até a pasta raiz da função
+        cd app/lambda_function  # Vá até a pasta raiz da função
         zip -r ../lambda_function.zip lambda_function.py src/app/*  # Garante que o ZIP inclua a função e dependências
         cd ..  # Volta para o diretório raiz
         ls -lah  # Lista os arquivos para verificar se o ZIP foi criado corretamente
